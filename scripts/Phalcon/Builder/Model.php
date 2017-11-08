@@ -77,11 +77,10 @@ class Model extends Component
         }
 
         if (!isset($options['className'])) {
-            $options['className'] = Text::camelize($options['name'], '_-');
+            $options['className'] = Text::camelize(Text::uncamelize($options['name'], '_'), '_-');
         }
-
         if (!isset($options['fileName'])) {
-            $options['fileName'] = Text::camelize($options['name'], '_-');
+            $options['fileName'] = Text::camelize(Text::uncamelize($options['name'], '_'), '_-');
         }
 
         if (!isset($options['abstract'])) {
@@ -262,9 +261,9 @@ class Model extends Component
                 $initialize[] = $this->snippet->getRelation(
                     'hasMany',
                     $this->options->get('camelize') ? Utils::lowerCamelize($refColumns[0]) : $refColumns[0],
-                    $entityNamespace . Text::camelize($tableName, '_-'),
+                    $entityNamespace . Text::camelize(Text::uncamelize($tableName, '_'), '_-'),
                     $this->options->get('camelize') ? Utils::lowerCamelize($columns[0]) : $columns[0],
-                    "['alias' => '" . Text::camelize($tableName, '_-') . "']"
+                    "['alias' => '" . Text::camelize(Text::uncamelize($tableName, '_'), '_-') . "']"
                 );
             }
         }
@@ -274,7 +273,9 @@ class Model extends Component
             if ($this->options->contains('namespace')) {
                 $entityNamespace = $this->options->get('namespace');
             }
-
+            
+            $alias = str_replace($entityNamespace . "\\", '', $this->getEntityClassName($reference, $entityNamespace));
+            
             $refColumns = $reference->getReferencedColumns();
             $columns = $reference->getColumns();
             $initialize[] = $this->snippet->getRelation(
@@ -282,7 +283,7 @@ class Model extends Component
                 $this->options->get('camelize') ? Utils::lowerCamelize($columns[0]) : $columns[0],
                 $this->getEntityClassName($reference, $entityNamespace),
                 $this->options->get('camelize') ? Utils::lowerCamelize($refColumns[0]) : $refColumns[0],
-                "['alias' => '" . Text::camelize($reference->getReferencedTable(), '_-') . "']"
+                "['alias' => '" . $alias . "']"
             );
         }
 
@@ -520,7 +521,7 @@ class Model extends Component
 
         if ($this->isConsole()) {
             $msgSuccess = ($this->options->contains('abstract') ? 'Abstract ' : '') . 'Model "%s" was successfully created.';
-            $this->notifySuccess(sprintf($msgSuccess, Text::camelize($this->options->get('name'), '_-')));
+            $this->notifySuccess(sprintf($msgSuccess, $this->options->get('className'), '_-'));
         }
     }
 
